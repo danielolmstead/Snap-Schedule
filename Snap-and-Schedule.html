@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Snap & Schedule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,700;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1208;
+    --paper: #faf7f2;
+    --gold: #c8922a;
+    --gold-light: #f0d080;
+    --sage: #5a7a5a;
+    --rust: #b84a2a;
+    --cream: #f5f0e8;
+    --border: #d4c9b0;
+    --shadow: rgba(26,18,8,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(200,146,42,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 100%, rgba(90,122,90,0.06) 0%, transparent 50%);
+  }
+
+  header {
+    padding: 2rem 2rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    position: relative;
+  }
+
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 2rem;
+    width: 3rem;
+    height: 2px;
+    background: var(--gold);
+  }
+
+  .logo {
+    font-family: 'Fraunces', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+
+  .logo span {
+    color: var(--gold);
+  }
+
+  .tagline {
+    font-size: 0.78rem;
+    color: #7a6a50;
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .container {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* INPUT ZONE */
+  .input-zone {
+    background: var(--cream);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .input-zone:focus-within {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(200,146,42,0.1);
+  }
+
+  .tab-bar {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.5);
+  }
+
+  .tab {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #8a7a60;
+    background: none;
+    border: none;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: color 0.2s, background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+  }
+
+  .tab.active {
+    color: var(--gold);
+    background: rgba(200,146,42,0.06);
+    border-bottom: 2px solid var(--gold);
+    margin-bottom: -1px;
+  }
+
+  .tab:hover:not(.active) {
+    color: var(--ink);
+    background: rgba(0,0,0,0.03);
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* IMAGE UPLOAD */
+  .drop-area {
+    padding: 2.5rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .drop-area input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .drop-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    display: block;
+    opacity: 0.6;
+  }
+
+  .drop-label {
+    font-family: 'Fraunces', serif;
+    font-size: 1.05rem;
+    font-weight: 400;
+    color: var(--ink);
+    margin-bottom: 0.3rem;
+  }
+
+  .drop-sublabel {
+    font-size: 0.78rem;
+    color: #8a7a60;
+  }
+
+  .preview-img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 6px;
+    margin: 1rem auto 0;
+    display: block;
+    box-shadow: 0 2px 12px var(--shadow);
+  }
+
+  /* TEXT INPUT */
+  .text-area-wrap {
+    padding: 1rem;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 160px;
+    border: none;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem;
+    color: var(--ink);
+    resize: vertical;
+    outline: none;
+    line-height: 1.6;
+  }
+
+  textarea::placeholder { color: #b0a080; }
+
+  /* EXTRACT BUTTON */
+  .extract-btn {
+    width: 100%;
+    padding: 1rem;
+    background: var(--ink);
+    color: var(--gold-light);
+    border: none;
+    border-radius: 10px;
+    font-family: 'Fraunces', serif;
+    font-size: 1.05rem;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-bottom: 2rem;
+  }
+
+  .extract-btn:hover:not(:disabled) {
+    background: #2d2010;
+    transform: translateY(-1px);
+  }
+
+  .extract-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .extract-btn .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(240,208,128,0.3);
+    border-top-color: var(--gold-light);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+
+  .extract-btn.loading .spinner { display: block; }
+  .extract-btn.loading .btn-text { opacity: 0.7; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ERROR */
+  .error-msg {
+    background: rgba(184,74,42,0.08);
+    border: 1px solid rgba(184,74,42,0.25);
+    color: var(--rust);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+    display: none;
+  }
+
+  /* RESULTS */
+  .results-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .results-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.1rem;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--ink);
+  }
+
+  .results-count {
+    font-size: 0.78rem;
+    color: #8a7a60;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 0.2rem 0.65rem;
+  }
+
+  .event-card {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    box-shadow: 0 1px 4px var(--shadow);
+    animation: slideIn 0.3s ease both;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .event-header {
+    padding: 1rem 1rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(200,146,42,0.03);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .event-num {
+    font-family: 'Fraunces', serif;
+    font-size: 0.75rem;
+    color: var(--gold);
+    background: rgba(200,146,42,0.12);
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-weight: 700;
+  }
+
+  .event-title-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: 'Fraunces', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    outline: none;
+    width: 100%;
+  }
+
+  .event-title-input:focus {
+    background: rgba(200,146,42,0.05);
+    border-radius: 4px;
+    padding: 0 4px;
+    margin: 0 -4px;
+  }
+
+  .event-body {
+    padding: 0.85rem 1rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+  }
+
+  .event-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .event-field.full-width {
+    grid-column: 1 / -1;
+  }
+
+  .field-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9a8a70;
+    font-weight: 500;
+  }
+
+  .field-input {
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background: var(--cream);
+    padding: 0.4rem 0.6rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+    width: 100%;
+  }
+
+  .field-input:focus {
+    border-color: var(--gold);
+    background: white;
+  }
+
+  .event-footer {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 0.6rem;
+    justify-content: flex-end;
+  }
+
+  .btn-gcal {
+    padding: 0.5rem 1rem;
+    background: var(--sage);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    text-decoration: none;
+    transition: background 0.15s, transform 0.1s;
+  }
+
+  .btn-gcal:hover {
+    background: #486848;
+    transform: translateY(-1px);
+  }
+
+  .btn-remove {
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+    color: #9a8a70;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .btn-remove:hover {
+    color: var(--rust);
+    border-color: var(--rust);
+  }
+
+  /* ADD ALL BUTTON */
+  .add-all-wrap {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed var(--border);
+  }
+
+  .add-all-note {
+    font-size: 0.78rem;
+    color: #8a7a60;
+    text-align: center;
+    margin-bottom: 0.75rem;
+  }
+
+  .btn-add-all {
+    width: 100%;
+    padding: 0.9rem;
+    background: transparent;
+    color: var(--sage);
+    border: 1.5px solid var(--sage);
+    border-radius: 10px;
+    font-family: 'Fraunces', serif;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .btn-add-all:hover {
+    background: var(--sage);
+    color: white;
+  }
+
+  /* INSTRUCTIONS */
+  .instructions {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .instructions h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 0.9rem;
+    font-weight: 400;
+    font-style: italic;
+    color: #7a6a50;
+    margin-bottom: 0.75rem;
+  }
+
+  .tip {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+  }
+
+  .tip-icon { font-size: 0.9rem; flex-shrink: 0; margin-top: 1px; }
+  .tip-text { font-size: 0.8rem; color: #7a6a50; line-height: 1.5; }
+
+  /* PWA install hint */
+  .pwa-hint {
+    background: rgba(90,122,90,0.08);
+    border: 1px solid rgba(90,122,90,0.2);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.78rem;
+    color: var(--sage);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  @media (max-width: 480px) {
+    .event-body { grid-template-columns: 1fr; }
+    .event-field.full-width { grid-column: 1; }
+    header { padding: 1.25rem 1rem 1rem; }
+    .logo { font-size: 1.35rem; }
+    .container { padding: 1.25rem 1rem 3rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Snap &amp;<span> Schedule</span></div>
+  <div class="tagline">AI → Google Calendar</div>
+</header>
+
+<div class="container">
+
+  <div class="pwa-hint">
+    📱 <span>On Android: tap the browser menu → <strong>"Add to Home Screen"</strong> to use this like a native app.</span>
+  </div>
+
+  <div class="input-zone">
+    <div class="tab-bar">
+      <button class="tab active" onclick="switchTab('image')">📷 Photo / Image</button>
+      <button class="tab" onclick="switchTab('text')">✏️ Paste Text</button>
+    </div>
+
+    <div id="panel-image" class="tab-panel active">
+      <div class="drop-area" id="dropArea">
+        <input type="file" id="imageInput" accept="image/*" capture="environment" onchange="handleImageSelect(this)">
+        <span class="drop-icon">🖼️</span>
+        <div class="drop-label">Tap to snap or upload</div>
+        <div class="drop-sublabel">Flyers · Schedules · Screenshots · Emails</div>
+        <img id="previewImg" class="preview-img" style="display:none">
+      </div>
+    </div>
+
+    <div id="panel-text" class="tab-panel">
+      <div class="text-area-wrap">
+        <textarea id="textInput" placeholder="Paste or type any text with dates and events in it. For example: 'Soccer practice every Tuesday at 4pm, game on Saturday May 10th at 10am at Riverside Park'"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <button class="extract-btn" id="extractBtn" onclick="extractEvents()">
+    <div class="spinner"></div>
+    <span class="btn-text">✨ Extract Events</span>
+  </button>
+
+  <div id="resultsArea" style="display:none">
+    <div class="results-header">
+      <div class="results-title">Found events</div>
+      <div class="results-count" id="resultsCount"></div>
+    </div>
+    <div id="eventsList"></div>
+    <div class="add-all-wrap" id="addAllWrap" style="display:none">
+      <div class="add-all-note">Open each event individually in Google Calendar to save them all.</div>
+      <button class="btn-add-all" onclick="addAll()">📅 Open All in Google Calendar</button>
+    </div>
+  </div>
+
+  <div class="instructions">
+    <h3>Tips for best results</h3>
+    <div class="tip"><span class="tip-icon">📸</span><span class="tip-text">Take a clear, well-lit photo — the whole flyer or schedule in frame</span></div>
+    <div class="tip"><span class="tip-icon">🏫</span><span class="tip-text">Works great with school newsletters, sports schedules, event invitations</span></div>
+    <div class="tip"><span class="tip-icon">✏️</span><span class="tip-text">After extraction, edit any field before adding to your calendar</span></div>
+    <div class="tip"><span class="tip-icon">📅</span><span class="tip-text">Events open directly in Google Calendar — just hit Save to confirm</span></div>
+  </div>
+
+</div>
+
+<script>
+  let currentImageBase64 = null;
+  let currentTab = 'image';
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('panel-' + tab).classList.add('active');
+    hideError();
+  }
+
+  function handleImageSelect(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const dataUrl = e.target.result;
+      currentImageBase64 = dataUrl.split(',')[1];
+      const img = document.getElementById('previewImg');
+      img.src = dataUrl;
+      img.style.display = 'block';
+      document.querySelector('.drop-icon').style.display = 'none';
+      document.querySelector('.drop-label').style.display = 'none';
+      document.querySelector('.drop-sublabel').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function hideError() {
+    document.getElementById('errorMsg').style.display = 'none';
+  }
+
+  async function extractEvents() {
+    hideError();
+    const btn = document.getElementById('extractBtn');
+    const text = document.getElementById('textInput').value.trim();
+
+    if (currentTab === 'image' && !currentImageBase64) {
+      showError('Please select or take a photo first.');
+      return;
+    }
+    if (currentTab === 'text' && !text) {
+      showError('Please paste or type some text with events in it.');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.classList.add('loading');
+    btn.querySelector('.btn-text').textContent = 'Extracting…';
+    document.getElementById('resultsArea').style.display = 'none';
+
+    try {
+      let messages;
+      const systemPrompt = `You are a calendar event extraction assistant. Extract ALL events from the provided content and return ONLY a JSON array. No preamble, no explanation, no markdown fences.
+
+Each event object must have these fields:
+- title: string (event name)
+- date: string (YYYY-MM-DD format, use current year if not specified, today is ${new Date().toISOString().split('T')[0]})
+- startTime: string (HH:MM in 24h format, empty string if all-day)
+- endTime: string (HH:MM in 24h format, empty string if unknown or all-day)
+- location: string (empty string if unknown)
+- description: string (any relevant notes, empty string if none)
+
+If recurring events exist (e.g. "every Tuesday"), create one entry per occurrence if dates are specified, or just one representative entry if not. Return [] if no events found.`;
+
+      if (currentTab === 'image') {
+        messages = [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: currentImageBase64 } },
+            { type: 'text', text: 'Extract all calendar events from this image.' }
+          ]
+        }];
+      } else {
+        messages = [{
+          role: 'user',
+          content: `Extract all calendar events from this text:\n\n${text}`
+        }];
+      }
+
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          system: systemPrompt,
+          messages
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error?.message || 'API error');
+
+      const raw = data.content.map(b => b.text || '').join('').trim();
+      let events;
+      try {
+        const clean = raw.replace(/```json|```/g, '').trim();
+        events = JSON.parse(clean);
+      } catch {
+        throw new Error('Could not parse events. Try again or rephrase the text.');
+      }
+
+      if (!Array.isArray(events) || events.length === 0) {
+        showError('No events found. Try a clearer image or add more detail to your text.');
+        return;
+      }
+
+      renderEvents(events);
+
+    } catch (err) {
+      showError('Something went wrong: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      btn.querySelector('.btn-text').textContent = '✨ Extract Events';
+    }
+  }
+
+  function renderEvents(events) {
+    const list = document.getElementById('eventsList');
+    list.innerHTML = '';
+    document.getElementById('resultsCount').textContent = events.length + ' event' + (events.length !== 1 ? 's' : '');
+    document.getElementById('resultsArea').style.display = 'block';
+    document.getElementById('addAllWrap').style.display = events.length > 1 ? 'block' : 'none';
+
+    events.forEach((ev, i) => {
+      const card = document.createElement('div');
+      card.className = 'event-card';
+      card.style.animationDelay = (i * 0.07) + 's';
+      card.dataset.index = i;
+      card.innerHTML = `
+        <div class="event-header">
+          <div class="event-num">${i + 1}</div>
+          <input class="event-title-input" value="${esc(ev.title)}" placeholder="Event title" data-field="title">
+        </div>
+        <div class="event-body">
+          <div class="event-field">
+            <div class="field-label">Date</div>
+            <input type="date" class="field-input" value="${esc(ev.date)}" data-field="date">
+          </div>
+          <div class="event-field">
+            <div class="field-label">Start Time</div>
+            <input type="time" class="field-input" value="${esc(ev.startTime)}" data-field="startTime">
+          </div>
+          <div class="event-field">
+            <div class="field-label">End Time</div>
+            <input type="time" class="field-input" value="${esc(ev.endTime)}" data-field="endTime">
+          </div>
+          <div class="event-field">
+            <div class="field-label">Location</div>
+            <input type="text" class="field-input" value="${esc(ev.location)}" placeholder="Optional" data-field="location">
+          </div>
+          <div class="event-field full-width">
+            <div class="field-label">Notes</div>
+            <input type="text" class="field-input" value="${esc(ev.description)}" placeholder="Optional" data-field="description">
+          </div>
+        </div>
+        <div class="event-footer">
+          <button class="btn-remove" onclick="removeCard(this)">Remove</button>
+          <a class="btn-gcal" href="${buildGCalUrl(ev)}" target="_blank" onclick="updateLinkFromCard(this)">📅 Add to Google Calendar</a>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+  }
+
+  function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function buildGCalUrl(ev) {
+    const base = 'https://calendar.google.com/calendar/render?action=TEMPLATE';
+    const params = new URLSearchParams();
+    params.set('text', ev.title || 'Event');
+
+    if (ev.date) {
+      const d = ev.date.replace(/-/g, '');
+      if (ev.startTime) {
+        const start = d + 'T' + ev.startTime.replace(':', '') + '00';
+        const endTime = ev.endTime || addHour(ev.startTime);
+        const end = d + 'T' + endTime.replace(':', '') + '00';
+        params.set('dates', start + '/' + end);
+      } else {
+        params.set('dates', d + '/' + d);
+      }
+    }
+
+    if (ev.location) params.set('location', ev.location);
+    if (ev.description) params.set('details', ev.description);
+
+    return base + '&' + params.toString();
+  }
+
+  function addHour(timeStr) {
+    const [h, m] = timeStr.split(':').map(Number);
+    const newH = Math.min(h + 1, 23);
+    return String(newH).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+  }
+
+  function getCardData(card) {
+    const data = {};
+    card.querySelectorAll('[data-field]').forEach(el => {
+      data[el.dataset.field] = el.value;
+    });
+    return data;
+  }
+
+  function updateLinkFromCard(link) {
+    const card = link.closest('.event-card');
+    const data = getCardData(card);
+    link.href = buildGCalUrl(data);
+  }
+
+  function removeCard(btn) {
+    const card = btn.closest('.event-card');
+    card.style.opacity = '0';
+    card.style.transform = 'translateX(20px)';
+    card.style.transition = 'opacity 0.2s, transform 0.2s';
+    setTimeout(() => {
+      card.remove();
+      const remaining = document.querySelectorAll('.event-card').length;
+      document.getElementById('resultsCount').textContent = remaining + ' event' + (remaining !== 1 ? 's' : '');
+      document.getElementById('addAllWrap').style.display = remaining > 1 ? 'block' : 'none';
+      if (remaining === 0) document.getElementById('resultsArea').style.display = 'none';
+    }, 200);
+  }
+
+  function addAll() {
+    const cards = document.querySelectorAll('.event-card');
+    cards.forEach((card, i) => {
+      const data = getCardData(card);
+      const url = buildGCalUrl(data);
+      setTimeout(() => window.open(url, '_blank'), i * 400);
+    });
+  }
+</script>
+</body>
+</html>
